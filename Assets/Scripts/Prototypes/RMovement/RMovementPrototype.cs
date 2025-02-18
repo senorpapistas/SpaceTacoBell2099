@@ -4,22 +4,33 @@ using UnityEngine;
 
 public class RMovementPrototype : MonoBehaviour
 {
-    public float speed = 1.0f;
-    public float jumpForce = 9.0f;
-    public Rigidbody rb;
+    // values in script are ones i thought were comfy
+    [Header("Physics Values")]
+    public float speed = 5.0f;
+    public float jumpForce = 7.0f;
+    public float fallMultiplier = 6f;
+    public float lowJumpMultiplier = 2.7f;
+    private Rigidbody rb;
     private Vector3 movement;
     private Vector3 facing = Vector3.right;
 
-    [SerializeField]
-    //private bool isGrounded;
     private float distToGround;
     private Vector3 boxSize;
     private Vector3 adjustedBoxSize;
 
+    [Header("Dash Settings")]
     [SerializeField]
-    private float dashSpeed;
-    public float maxDashDist;
+    private float dashSpeed = 30f;
+    public float maxDashDist = 2.5f;
+    [SerializeField]
+    private float DASH_COOLDOWN = 0.4f;
+
     private bool allowedToDash = true;
+    private bool isDashing = false;
+
+    private KeyCode JUMP_KEY = KeyCode.Space;
+    private KeyCode DASH_KEY = KeyCode.LeftShift;
+
 
 
     void Start()
@@ -43,14 +54,14 @@ public class RMovementPrototype : MonoBehaviour
             facing = movement.x > 0 ? Vector3.right : Vector3.left;
         }
 
-        if (Input.GetKeyDown(KeyCode.W) && IsGrounded())
+        if (Input.GetKeyDown(JUMP_KEY) && IsGrounded())
         {
             Jump();
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftShift) && allowedToDash)
+        if (Input.GetKeyDown(DASH_KEY) && allowedToDash) 
         {
-            Debug.Log("trying to dash");
+            //Debug.Log("trying to dash");
             StartCoroutine(Dash());
         }
 
@@ -58,47 +69,67 @@ public class RMovementPrototype : MonoBehaviour
 
     private void FixedUpdate()
     {
-        moveCharacter(movement);
+        if (!isDashing)
+        {
+            MoveCharacter(movement);
+            AdjustGravity();
+        }
     }
 
-    private void Jump()
-    {
-        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-    }
-
+    // dash velocity implementation
     private IEnumerator Dash()
     {
-        Debug.Log("called dash");
+        isDashing = true;
         allowedToDash = false;
+        rb.useGravity = false;
+        rb.velocity = Vector3.zero;
         Vector3 dashDirection = facing;
 
         RaycastHit hit;
         float dashDistance = maxDashDist;
 
-        if (Physics.BoxCast(transform.position, boxSize / 2, dashDirection, out hit, Quaternion.identity, maxDashDist))
+        if (rb.SweepTest(dashDirection, out hit, maxDashDist))
         {
-            dashDistance = hit.distance - 0.1f;
-            Debug.Log("confirmed hit, reducing dashDistance to " + dashDistance);
+            dashDistance = hit.distance - 0.05f;
         }
 
-        Vector3 dashTarget = transform.position + dashDirection * dashDistance;
-        rb.MovePosition(dashTarget);
+        Vector3 dashVelocity = dashDirection * dashSpeed;
+        float dashTime = dashDistance / dashSpeed;
 
-        Debug.Log("dash end location at" + dashTarget);
-
-        yield return new WaitForSeconds(0.5f);
-        Debug.Log("end dash");
+        rb.velocity = dashVelocity;
+        yield return new WaitForSeconds(dashTime);
+        rb.velocity = Vector3.zero;
+        rb.useGravity = true;
+        isDashing = false;
+        yield return new WaitForSeconds(DASH_COOLDOWN);
         allowedToDash = true;
     }
+    private void Jump()
+    {
+        // when falling from great heights then using jump, chance for adjusted gravity to reduce max jump height
+        rb.velocity = new Vector3(rb.velocity.x, 0, 0);
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+    }
 
-    private void moveCharacter(Vector3 direction)
+    private void MoveCharacter(Vector3 direction)
     {
         rb.velocity = new Vector3(direction.x * speed, rb.velocity.y, 0);
     }
 
+    private void AdjustGravity()
+    {
+        if (rb.velocity.y < 0) // increase fall speed
+        { // needs to be multiplied by fixedDeltaTime
+            rb.velocity += Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
+        }
+        else if (rb.velocity.y > 0 && !Input.GetKey(JUMP_KEY)) // if jump key is released before apex
+        {
+            rb.velocity += Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
+        }
+    }
+
     private bool IsGrounded()
     {
-        
         return Physics.BoxCast(transform.position, adjustedBoxSize / 2, -Vector3.up, Quaternion.identity, distToGround + 0.1f);
     }
 }
