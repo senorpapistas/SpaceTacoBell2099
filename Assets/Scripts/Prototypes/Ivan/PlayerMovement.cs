@@ -98,5 +98,6 @@ public class PlayerMovement : MonoBehaviour
         isDashing = false;
         rb.gravityScale = originalGravity;
         canDash = true;
+        rb.velocity = new Vector2(0, 0);
     }
 }
