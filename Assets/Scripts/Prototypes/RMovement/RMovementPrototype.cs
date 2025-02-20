@@ -10,11 +10,14 @@ public class RMovementPrototype : MonoBehaviour
     public float jumpForce = 7.0f;
     public float fallMultiplier = 6f;
     public float lowJumpMultiplier = 2.7f;
+    public float crouchSpeedMultiplier = 0.5f;
     private Rigidbody rb;
     private Vector3 movement;
     private Vector3 facing = Vector3.right;
 
+    // raycast checks
     private float distToGround;
+    private float playerHeight;
     private Vector3 boxSize;
     private Vector3 adjustedBoxSize;
 
@@ -25,19 +28,28 @@ public class RMovementPrototype : MonoBehaviour
     [SerializeField]
     private float DASH_COOLDOWN = 0.4f;
 
+    [Header("Crouch Settings")]
+    [SerializeField]
+    private float crouchSpeed = 0.1f;
+    [SerializeField]
+    private float CROUCH_COOLDOWN = 0.30f;
+
     private bool allowedToDash = true;
     private bool isDashing = false;
+    private bool isCrouched = false; // player crouch status
+    private bool isCrouching = false; // is animation playing
+    private bool canCrouch = true; // cooldown
 
     private KeyCode JUMP_KEY = KeyCode.Space;
     private KeyCode DASH_KEY = KeyCode.LeftShift;
-
-
+    private KeyCode CROUCH_KEY = KeyCode.C;
 
     void Start()
     {
         rb = this.GetComponent<Rigidbody>();
         Collider collider = rb.GetComponent<Collider>();
         distToGround = collider.bounds.extents.y;
+        playerHeight = collider.bounds.size.y;
         boxSize = new Vector3(collider.bounds.size.x, 0.1f, collider.bounds.size.z);
         adjustedBoxSize = new Vector3(boxSize.x * 0.9f, boxSize.y, boxSize.z * 0.9f);
     }
@@ -59,12 +71,23 @@ public class RMovementPrototype : MonoBehaviour
             Jump();
         }
 
-        if (Input.GetKeyDown(DASH_KEY) && allowedToDash) 
+        if (Input.GetKeyDown(CROUCH_KEY) && canCrouch)
         {
-            //Debug.Log("trying to dash");
-            StartCoroutine(Dash());
+            Debug.Log("called crouch");
+            StartCoroutine(Crouch());
+            //Crouch();
         }
 
+        if (isCrouched && !Input.GetKey(CROUCH_KEY))
+        {
+            StartCoroutine(AttemptUncrouch());
+        }
+
+        // only allowed to dash if uncrouched, do crouch check first
+        if (Input.GetKeyDown(DASH_KEY) && allowedToDash && !isCrouched)
+        {
+            StartCoroutine(Dash());
+        }
     }
 
     private void FixedUpdate()
@@ -88,6 +111,7 @@ public class RMovementPrototype : MonoBehaviour
         RaycastHit hit;
         float dashDistance = maxDashDist;
 
+        // on expected collision, set distance to before it
         if (rb.SweepTest(dashDirection, out hit, maxDashDist))
         {
             dashDistance = hit.distance - 0.05f;
@@ -104,12 +128,112 @@ public class RMovementPrototype : MonoBehaviour
         yield return new WaitForSeconds(DASH_COOLDOWN);
         allowedToDash = true;
     }
+
     private void Jump()
     {
         // when falling from great heights then using jump, chance for adjusted gravity to reduce max jump height
         rb.velocity = new Vector3(rb.velocity.x, 0, 0);
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
+
+    //private void Crouch()
+    //{
+    //    if (!isCrouched)
+    //    {
+    //        isCrouched = true;
+    //        transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y / 2, transform.localScale.z);
+    //        transform.position -= new Vector3(0, playerHeight / 4, 0); // correct players position
+    //        speed *= crouchSpeedMultiplier;
+    //    }
+    //}
+
+    private IEnumerator Crouch()
+    {
+        if (!isCrouched && !isCrouching)
+        {
+            isCrouched = true;
+            isCrouching = true;
+            canCrouch = false;
+            float elapsedTime = 0f;
+            Vector3 startScale = transform.localScale;
+            Vector3 targetScale = new Vector3(transform.localScale.x, transform.localScale.y / 2, transform.localScale.z);
+            Vector3 startPosition = transform.position;
+            Vector3 targetPosition = transform.position - new Vector3(0, playerHeight / 4, 0);
+
+            while (elapsedTime < crouchSpeed)
+            { // crouch animation
+                transform.localScale = Vector3.Lerp(startScale, targetScale, elapsedTime / crouchSpeed);
+                transform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime / crouchSpeed);
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            transform.localScale = targetScale;
+            transform.position = targetPosition;
+            speed *= crouchSpeedMultiplier;
+            isCrouching = false;
+            yield return new WaitForSeconds(CROUCH_COOLDOWN);
+            canCrouch = true;
+        }
+    }
+
+    private IEnumerator Uncrouch()
+    {
+        isCrouching = true;
+        float elapsedTime = 0f;
+        Vector3 startScale = transform.localScale;
+        Vector3 targetScale = new Vector3(transform.localScale.x, transform.localScale.y * 2, transform.localScale.z);
+        Vector3 startPosition = transform.position;
+        Vector3 targetPosition = transform.position + new Vector3(0, playerHeight / 4, 0);
+
+        while (elapsedTime < crouchSpeed)
+        {
+            transform.localScale = Vector3.Lerp(startScale, targetScale, elapsedTime / crouchSpeed);
+            transform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime / crouchSpeed);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.localScale = targetScale;
+        transform.position = targetPosition;
+        speed /= crouchSpeedMultiplier;
+        isCrouched = false;
+        isCrouching = false;
+    }
+
+    private IEnumerator AttemptUncrouch()
+    {
+        while (isCrouched)
+        {
+            if (!IsCeiling() && !isCrouching)
+            {
+                yield return StartCoroutine(Uncrouch());
+                yield break;
+            }
+            yield return null;
+        }
+    }
+
+    //private void Uncrouch()
+    //{
+    //    transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y * 2, transform.localScale.z);
+    //    transform.position += new Vector3(0, playerHeight / 4, 0); // correct players position
+    //    speed /= crouchSpeedMultiplier;
+    //    isCrouched = false;
+    //}
+    //private IEnumerator AttemptUncrouch()
+    //{
+    //    while (isCrouched)
+    //    {
+    //        if (!IsCeiling())
+    //        {
+    //            //Debug.Log("called uncrouch");
+    //            Uncrouch();
+    //            yield break;
+    //        }
+    //        yield return null; // wait for next frame
+    //    }
+    //}
 
     private void MoveCharacter(Vector3 direction)
     {
@@ -122,14 +246,20 @@ public class RMovementPrototype : MonoBehaviour
         { // needs to be multiplied by fixedDeltaTime
             rb.velocity += Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
         }
-        else if (rb.velocity.y > 0 && !Input.GetKey(JUMP_KEY)) // if jump key is released before apex
-        {
+        else if (rb.velocity.y > 0 && !Input.GetKey(JUMP_KEY))
+        { // if jump key is released before apex, decrease gravity by lowJumpMultiplier
             rb.velocity += Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
         }
     }
 
     private bool IsGrounded()
-    {
+    { // shoot a short box cast downwards with a slightly smaller box hitbox
         return Physics.BoxCast(transform.position, adjustedBoxSize / 2, -Vector3.up, Quaternion.identity, distToGround + 0.1f);
+    }
+
+    private bool IsCeiling()
+    { // check if player will collide with ceiling from uncrouch
+        float crouchedHeight = playerHeight / 2;
+        return Physics.BoxCast(transform.position + Vector3.up * (crouchedHeight / 2), adjustedBoxSize / 2, Vector3.up, Quaternion.identity, (playerHeight - crouchedHeight) + 0.1f);
     }
 }
