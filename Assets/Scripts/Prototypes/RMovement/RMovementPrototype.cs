@@ -8,6 +8,7 @@ public class RMovementPrototype : MonoBehaviour
     [Header("Physics Values")]
     public float speed = 5.0f;
     public float jumpForce = 7.0f;
+    public float apexThreshold = 1f; // velocity to start applying fall multiplier at
     public float fallMultiplier = 6f;
     public float lowJumpMultiplier = 2.7f;
     public float crouchSpeedMultiplier = 0.5f;
@@ -246,10 +247,16 @@ public class RMovementPrototype : MonoBehaviour
         { // needs to be multiplied by fixedDeltaTime
             rb.velocity += Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
         }
+        else if (rb.velocity.y > 0 && rb.velocity.y < apexThreshold) // apply fall multiplier before apex
+        {
+            rb.velocity += Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
+        }
         else if (rb.velocity.y > 0 && !Input.GetKey(JUMP_KEY))
         { // if jump key is released before apex, decrease gravity by lowJumpMultiplier
             rb.velocity += Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
         }
+        // extra gravity for less floaty
+        //rb.AddForce(new Vector3(0, -0.1f, 0), ForceMode.Impulse);
     }
 
     private bool IsGrounded()

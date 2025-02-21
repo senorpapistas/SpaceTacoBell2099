@@ -1842,6 +1842,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 5
   jumpForce: 7
+  apexThreshold: 1
   fallMultiplier: 6
   lowJumpMultiplier: 2.7
   crouchSpeedMultiplier: 0.5
@@ -1896,7 +1897,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 0.99, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1300853271
 MeshRenderer:
