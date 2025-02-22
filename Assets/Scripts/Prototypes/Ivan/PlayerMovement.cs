@@ -18,6 +18,7 @@ public class PlayerMovement : MonoBehaviour
     public float jumpPower;
     public float dashPower;
     public float dashTime;
+    public float dashCooldown;
 
     [Header("Player")]
     [SerializeField] private Rigidbody2D rb;
@@ -42,7 +43,7 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, jumpPower);
         }
 
-        if (Input.GetButtonDown("Fire1") && canDash)
+        if (Input.GetKeyDown(KeyCode.RightShift) && canDash)
         {
             StartCoroutine(Dash());
         }
@@ -78,14 +79,22 @@ public class PlayerMovement : MonoBehaviour
 
     private IEnumerator Dash()
     {
-        //dash
-        Vector2 direction = new Vector2(horizontal, vertical).normalized;
+        //---dash---//
 
+        Vector2 direction = new Vector2(horizontal, vertical).normalized;  
+
+        //default direction 
         if (horizontal == 0 && vertical == 0) 
         {
             if (isFacingRight) { direction.x = 1; }
             else { direction.x = -1; }
         }
+
+        //input direction
+        //direction = new Vector2(horizontal, vertical).normalized;
+
+        Debug.Log("direction is " + direction);
+        Debug.Log("input is " + horizontal + " " + vertical);
 
         canDash = false;
         isDashing = true;
@@ -99,5 +108,6 @@ public class PlayerMovement : MonoBehaviour
         rb.gravityScale = originalGravity;
         canDash = true;
         rb.velocity = new Vector2(0, 0);
+        yield return new WaitForSeconds(dashCooldown);
     }
 }
