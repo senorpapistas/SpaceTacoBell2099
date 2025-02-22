@@ -106,8 +106,8 @@ public class PlayerMovement : MonoBehaviour
         //reset variables
         isDashing = false;
         rb.gravityScale = originalGravity;
-        canDash = true;
         rb.velocity = new Vector2(0, 0);
         yield return new WaitForSeconds(dashCooldown);
+        canDash = true;
     }
 }
