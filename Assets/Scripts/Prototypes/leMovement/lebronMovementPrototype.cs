@@ -6,12 +6,14 @@ public class lebronMovementPrototype : MonoBehaviour
 {
     private Rigidbody rb;
     [SerializeField] private Vector2 dir, currVel;
-    [SerializeField] private float speed, dashSpeed, maxAccel, jumpHeight;
-    private bool jumping, grounded;
+    [SerializeField] private float speed, dashSpeed, maxAccel, jumpHeight, fallSpeed, gravityConstant, extraJumpHeight;
+    [SerializeField] private bool jumping, grounded, validJump;
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        gravityConstant = Physics.gravity.y;
+        Debug.Log(gravityConstant);
     }
 
     // Update is called once per frame
@@ -23,7 +25,11 @@ public class lebronMovementPrototype : MonoBehaviour
             rb.AddForce(dir * dashSpeed, ForceMode.Impulse);
             Debug.Log("dash?");
         }
-        jumping |= Input.GetKeyDown(KeyCode.Space);
+        if (!jumping && Input.GetKeyDown(KeyCode.Space))
+        {
+            jumping = true;
+        }//*/
+        //jumping = Input.GetKey(KeyCode.Space);
     }
     void FixedUpdate()
     {
@@ -32,11 +38,17 @@ public class lebronMovementPrototype : MonoBehaviour
         
         //float maxSpeed = maxAccel * Time.deltaTime;
         currVel.x = Mathf.MoveTowards(currVel.x, dir.x, speed);
-        if (jumping & grounded)
+        if (jumping && grounded)
         {
-            jumping = false;
-            currVel.y += Mathf.Sqrt(-2f * Physics.gravity.y * jumpHeight);
-            
+            currVel.y += Mathf.Sqrt(-2f * gravityConstant * jumpHeight);
+        }
+        /*if (jumping && currVel.y > 0)
+        {
+            currVel.y += jumpHeight * extraJumpHeight;
+        }*/
+        if (currVel.y < 0)
+        {
+            currVel += Vector2.up * gravityConstant * fallSpeed * Time.deltaTime;
         }
         rb.velocity = currVel;
         grounded = false;
@@ -49,6 +61,7 @@ public class lebronMovementPrototype : MonoBehaviour
         {
             Vector3 normal = collision.GetContact(i).normal;
             grounded |= normal.y >= 0.9f;
+            //jumping = false;
         }
     }
 
@@ -58,6 +71,7 @@ public class lebronMovementPrototype : MonoBehaviour
         {
             Vector3 normal = collision.GetContact(i).normal;
             grounded |= normal.y >= 0.9f;
+            //jumping = false;
         }
     }
 }

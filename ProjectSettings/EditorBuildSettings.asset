@@ -6,6 +6,15 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
+    path: Assets/Scenes/TempPrototypeMenu.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/Prototypes/Ivan.unity
+    guid: bb0585df22eedea41a8364cf9cf613e7
+  - enabled: 1
+    path: Assets/Scenes/Prototypes/LeBrainJar.unity
+    guid: e2bf6340d78b96442b374d162c82c601
+  - enabled: 1
+    path: Assets/Scenes/Prototypes/RalphScene.unity
+    guid: bdbfa72cb4500ce4692faaedefd29d87
   m_configObjects: {}
