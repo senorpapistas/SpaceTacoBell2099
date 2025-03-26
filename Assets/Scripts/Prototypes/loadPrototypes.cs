@@ -16,7 +16,7 @@ public class loadPrototypes : MonoBehaviour
     {
         
     }
-
+    // movement prototypes
     public void LoadIvanPrototype()
     {
         SceneManager.LoadScene("Ivan", LoadSceneMode.Single);
@@ -30,5 +30,18 @@ public class loadPrototypes : MonoBehaviour
     public void LoadEwinPrototype()
     {
         SceneManager.LoadScene("LeBrainJar", LoadSceneMode.Single);
+    }
+    // not movement prototypes
+    public void LoadRalphInventoryProt()
+    {
+        SceneManager.LoadScene("RalphInventory", LoadSceneMode.Single);
+    }
+    public void LoadSkeleton1()
+    {
+        SceneManager.LoadScene("REPLACE_ME", LoadSceneMode.Single);
+    }
+    public void LoadSkeleton2()
+    {
+        SceneManager.LoadScene("REPLACE_ME", LoadSceneMode.Single);
     }
 }

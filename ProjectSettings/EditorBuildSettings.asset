@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Prototypes/RalphScene.unity
     guid: bdbfa72cb4500ce4692faaedefd29d87
+  - enabled: 1
+    path: Assets/Scenes/Prototypes/RalphInventory.unity
+    guid: fdf236d7ff52e784cb5e10ceb21f0115
   m_configObjects: {}
