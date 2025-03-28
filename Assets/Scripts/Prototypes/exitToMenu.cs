@@ -16,6 +16,7 @@ public class exitToMenu : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            Time.timeScale = 1f;
             SceneManager.LoadScene("TempPrototypeMenu", LoadSceneMode.Single);
         }
     }
