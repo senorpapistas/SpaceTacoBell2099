@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Prototypes/RalphInventory.unity
     guid: fdf236d7ff52e784cb5e10ceb21f0115
+  - enabled: 1
+    path: Assets/Scenes/Prototypes/PotOfGreen.unity
+    guid: e758ae4750bacdf498b21a8c42bd5c8a
   m_configObjects: {}

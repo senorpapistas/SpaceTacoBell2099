@@ -36,9 +36,9 @@ public class loadPrototypes : MonoBehaviour
     {
         SceneManager.LoadScene("RalphInventory", LoadSceneMode.Single);
     }
-    public void LoadSkeleton1()
+    public void LoadEwinCombatProt()
     {
-        SceneManager.LoadScene("REPLACE_ME", LoadSceneMode.Single);
+        SceneManager.LoadScene("PotOfGreen", LoadSceneMode.Single);
     }
     public void LoadSkeleton2()
     {
