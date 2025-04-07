@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class IvanPlayerMovement : MonoBehaviour
 {
     [SerializeField] private float horizontal;
     [SerializeField] private float vertical;
