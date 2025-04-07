@@ -248,6 +248,13 @@ public class PlayerMovement : MonoBehaviour
     private bool IsCeiling()
     { // check if player will collide with ceiling from uncrouch
         float crouchedHeight = playerHeight / 2;
-        return Physics2D.BoxCast(transform.position + Vector3.up * (crouchedHeight / 2), adjustedBoxSize / 2, 0, Vector2.up, (playerHeight - crouchedHeight) + 0.1f);
+        int layerMask = ~LayerMask.GetMask("Player");
+        return Physics2D.BoxCast(
+            transform.position + Vector3.up * (crouchedHeight / 2), 
+            adjustedBoxSize / 2, 0, 
+            Vector2.up, 
+            (playerHeight - crouchedHeight) + 0.1f, 
+            layerMask
+        );
     }
 }
