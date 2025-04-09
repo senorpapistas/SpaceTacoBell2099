@@ -135,7 +135,7 @@ public class PlayerMovement : MonoBehaviour
     private void Jump()
     {
         // when falling from great heights then using jump, chance for adjusted gravity to reduce max jump height
-        rb.velocity = new Vector2(rb.velocity.x, 0);
+        //rb.velocity = new Vector2(rb.velocity.x, 0);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 
@@ -242,19 +242,13 @@ public class PlayerMovement : MonoBehaviour
 
     private bool IsGrounded()
     { // shoot a short box cast downwards with a slightly smaller box hitbox
-        return Physics2D.BoxCast(transform.position, adjustedBoxSize / 2, 0, -Vector2.up, distToGround + 0.1f);
+        return Physics2D.BoxCast(transform.position, adjustedBoxSize / 2, 0, -Vector2.up, distToGround + 0.1f, LayerMask.GetMask("Ground"));
     }
 
     private bool IsCeiling()
     { // check if player will collide with ceiling from uncrouch
         float crouchedHeight = playerHeight / 2;
-        int layerMask = ~LayerMask.GetMask("Player");
-        return Physics2D.BoxCast(
-            transform.position + Vector3.up * (crouchedHeight / 2), 
-            adjustedBoxSize / 2, 0, 
-            Vector2.up, 
-            (playerHeight - crouchedHeight) + 0.1f, 
-            layerMask
+        return Physics2D.BoxCast(transform.position + Vector3.up * (crouchedHeight / 2), adjustedBoxSize / 2, 0, Vector2.up, (playerHeight - crouchedHeight) + 0.1f, LayerMask.GetMask("Ground")
         );
     }
 }
